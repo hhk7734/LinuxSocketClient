@@ -26,7 +26,7 @@ class LinuxSocketClient : public Client
 public:
     virtual int     connect( IPAddress ip, uint16_t port );
     virtual int     connect( const char *host, uint16_t port );
-    virtual size_t  write( uint8_t );
+    virtual size_t  write( uint8_t data );
     virtual size_t  write( const uint8_t *buf, size_t size );
     virtual int     available( void );
     virtual int     read( void );
@@ -35,5 +35,13 @@ public:
     virtual void    flush( void );
     virtual void    stop( void );
     virtual uint8_t connected( void );
-    virtual         operator bool();
+    virtual         operator bool( void );
+
+private:
+    int m_fd;
 };
+
+inline LinuxSocketClient::operator bool( void )
+{
+    return connected();
+}
