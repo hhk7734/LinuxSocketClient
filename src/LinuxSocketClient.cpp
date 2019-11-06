@@ -46,19 +46,19 @@ int LinuxSocketClient::connect( IPAddress ip, uint16_t port )
     s_fd = c_wrap::socket( AF_INET, c_wrap::SOCK_STREAM, 0 );
     if( s_fd < 0 )
     {
-        return -1;
+        return false;
     }
 
     if( c_wrap::connect(
             s_fd, ( struct c_wrap::sockaddr * )&sin, sizeof( sin ) )
         != 0 )
     {
-        return -2;
+        return false;
     }
 
     m_fd = s_fd;
 
-    return 0;
+    return true;
 }
 
 int LinuxSocketClient::connect( const char *host, uint16_t port )
@@ -77,7 +77,7 @@ int LinuxSocketClient::connect( const char *host, uint16_t port )
     sprintf( port_s, "%d", port );
     if( c_wrap::getaddrinfo( host, port_s, &hints, &result ) != 0 )
     {
-        return -1;
+        return false;
     }
 
     for( rp = result; rp != NULL; rp = rp->ai_next )
@@ -109,14 +109,14 @@ int LinuxSocketClient::connect( const char *host, uint16_t port )
 
     if( rp == NULL )
     {
-        return -2;
+        return false;
     }
 
     c_wrap::freeaddrinfo( result );
 
     m_fd = s_fd;
 
-    return 0;
+    return true;
 }
 
 size_t LinuxSocketClient::write( uint8_t data )
