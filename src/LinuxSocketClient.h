@@ -21,6 +21,8 @@
 
 #include <Arduino.h>
 
+const int BUFFER_SIZE = 1024;
+
 class LinuxSocketClient : public Client
 {
 public:
@@ -37,8 +39,14 @@ public:
     virtual uint8_t connected( void );
     virtual         operator bool( void );
 
+    char     buffer[BUFFER_SIZE];
+    uint16_t buffer_head = 0;
+    uint16_t buffer_tail = 0;
+    int      m_fd;
+    bool     is_connected = false;
+
 private:
-    int m_fd;
+    pthread_t recv_thread;
 };
 
 inline LinuxSocketClient::operator bool( void )

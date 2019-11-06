@@ -22,6 +22,7 @@
 #include <stdio.h>     // sprintf()
 #include <string.h>    // memset()
 #include <sys/ioctl.h>
+#include <pthread.h>
 
 namespace c_wrap
 {
@@ -31,6 +32,32 @@ namespace c_wrap
 #include <netdb.h>         // htons(), getaddrinfo()
 #include <arpa/inet.h>     // inet_addr()
 }    // namespace c_wrap
+
+void *recv_thread_loop( void *arg )
+{
+    LinuxSocketClient *p_client = static_cast<LinuxSocketClient *>( arg );
+
+    while( p_client->is_connected )
+    {
+        char temp;
+        if( c_wrap::recv( p_client->m_fd, &temp, 1, 0 ) == 0 )
+        {
+            p_client->is_connected = false;
+        }
+        else
+        {
+            p_client->buffer[p_client->buffer_head] = temp;
+            p_client->buffer_head
+                = ( ( p_client->buffer_head ) + 1 ) % BUFFER_SIZE;
+
+            if( p_client->buffer_head == p_client->buffer_tail )
+            {
+                p_client->buffer_tail
+                    = ( ( p_client->buffer_tail ) + 1 ) % BUFFER_SIZE;
+            }
+        }
+    }
+}
 
 int LinuxSocketClient::connect( IPAddress ip, uint16_t port )
 {
@@ -57,6 +84,9 @@ int LinuxSocketClient::connect( IPAddress ip, uint16_t port )
     }
 
     m_fd = s_fd;
+
+    is_connected = true;
+    pthread_create( &recv_thread, NULL, recv_thread_loop, this );
 
     return true;
 }
@@ -116,6 +146,9 @@ int LinuxSocketClient::connect( const char *host, uint16_t port )
 
     m_fd = s_fd;
 
+    is_connected = true;
+    pthread_create( &recv_thread, NULL, recv_thread_loop, this );
+
     return true;
 }
 
@@ -131,21 +164,34 @@ size_t LinuxSocketClient::write( const uint8_t *buf, size_t size )
 
 int LinuxSocketClient::available( void )
 {
-    int count;
-    ioctl( m_fd, FIONREAD, &count );
-    return count;
+    return ( BUFFER_SIZE + buffer_head - buffer_tail ) % BUFFER_SIZE;
 }
 
 int LinuxSocketClient::read( void )
 {
-    char temp;
-    c_wrap::recv( m_fd, &temp, 1, 0 );
-    return temp;
+    if( available() != 0 )
+    {
+        char temp   = buffer[buffer_tail];
+        buffer_tail = ( buffer_tail + 1 ) % BUFFER_SIZE;
+        return temp;
+    }
+    else
+    {
+        return -1;
+    }
 }
 
 int LinuxSocketClient::read( uint8_t *buf, size_t size )
 {
-    return c_wrap::recv( m_fd, buf, size, 0 );
+    if( available() < size )
+    {
+        size = available();
+    }
+    for( int i = 0; i < size; ++i )
+    {
+        buf[i] = read();
+    }
+    return size;
 }
 
 int LinuxSocketClient::peek( void )
@@ -158,8 +204,10 @@ void LinuxSocketClient::flush( void )
 
 void LinuxSocketClient::stop( void )
 {
+    c_wrap::close( m_fd );
 }
 
 uint8_t LinuxSocketClient::connected( void )
 {
+    return is_connected;
 }
