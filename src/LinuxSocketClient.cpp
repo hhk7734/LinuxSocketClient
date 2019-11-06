@@ -36,7 +36,7 @@ int LinuxSocketClient::connect( IPAddress ip, uint16_t port )
 {
     int                        s_fd;
     struct c_wrap::sockaddr_in sin;
-    char                       ip_str[12];
+    char                       ip_str[16];
     sprintf( ip_str, "%d.%d.%d.%d", ip[0], ip[1], ip[2], ip[3] );
 
     sin.sin_addr.s_addr = c_wrap::inet_addr( ip_str );
