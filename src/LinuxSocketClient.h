@@ -46,6 +46,8 @@ public:
     bool     is_connected = false;
 
 private:
+    void recv_thread_loop( void );
+
     pthread_t recv_thread;
 };
 

@@ -33,27 +33,29 @@ namespace c_wrap
 #include <arpa/inet.h>     // inet_addr()
 }    // namespace c_wrap
 
-void *recv_thread_loop( void *arg )
+void *thread_loop_wrapper( void *arg )
 {
     LinuxSocketClient *p_client = static_cast<LinuxSocketClient *>( arg );
+    p_client->recv_thread_loop();
+}
 
-    while( p_client->is_connected )
+void LinuxSocketClient::recv_thread_loop( void )
+{
+    while( is_connected )
     {
         char temp;
-        if( c_wrap::recv( p_client->m_fd, &temp, 1, 0 ) == 0 )
+        if( c_wrap::recv( m_fd, &temp, 1, 0 ) == 0 )
         {
-            p_client->is_connected = false;
+            is_connected = false;
         }
         else
         {
-            p_client->buffer[p_client->buffer_head] = temp;
-            p_client->buffer_head
-                = ( ( p_client->buffer_head ) + 1 ) % BUFFER_SIZE;
+            buffer[buffer_head] = temp;
+            buffer_head         = ( ( buffer_head ) + 1 ) % BUFFER_SIZE;
 
-            if( p_client->buffer_head == p_client->buffer_tail )
+            if( buffer_head == buffer_tail )
             {
-                p_client->buffer_tail
-                    = ( ( p_client->buffer_tail ) + 1 ) % BUFFER_SIZE;
+                buffer_tail = ( ( buffer_tail ) + 1 ) % BUFFER_SIZE;
             }
         }
     }
@@ -86,7 +88,7 @@ int LinuxSocketClient::connect( IPAddress ip, uint16_t port )
     m_fd = s_fd;
 
     is_connected = true;
-    pthread_create( &recv_thread, NULL, recv_thread_loop, this );
+    pthread_create( &recv_thread, NULL, thread_loop_wrapper, this );
 
     return true;
 }
@@ -147,7 +149,7 @@ int LinuxSocketClient::connect( const char *host, uint16_t port )
     m_fd = s_fd;
 
     is_connected = true;
-    pthread_create( &recv_thread, NULL, recv_thread_loop, this );
+    pthread_create( &recv_thread, NULL, thread_loop_wrapper, this );
 
     return true;
 }
