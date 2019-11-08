@@ -39,7 +39,7 @@ void loop( void )
         }
 
         Serial.println( "Connection success." );
-        client.print( "Hello!" );
+        client.println( "Hello!" );
     }
 }
 ```
