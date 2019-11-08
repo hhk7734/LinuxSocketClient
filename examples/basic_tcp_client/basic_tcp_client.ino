@@ -6,12 +6,6 @@ uint16_t          port = 123;                  // Set Host port
 
 void setup( void )
 {
-    if( !client.connect( ip, port ) )
-    {
-        Serial.println( "Failed to connect." );
-    }
-
-    client.print( "Hello!" );
 }
 
 void loop( void )
@@ -24,6 +18,16 @@ void loop( void )
 
     if( !client.connected() )
     {
-        Serial.println( "Socket is disconnected." );
+        Serial.println();
+
+        while( !client.connect( ip, port ) )
+        {
+            Serial.println( "Connection failed." );
+            Serial.println( "Will try again after 5 seconds." );
+            delay( 5000 );
+        }
+
+        Serial.println( "Connection success." );
+        client.print( "Hello!" );
     }
 }
