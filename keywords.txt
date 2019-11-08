@@ -6,6 +6,8 @@
 # Datatypes (KEYWORD1)
 #######################################
 
+LinuxSocketClient	KEYWORD1
+
 #######################################
 # Methods and Functions (KEYWORD2)
 #######################################
