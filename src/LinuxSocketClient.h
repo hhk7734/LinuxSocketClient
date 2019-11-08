@@ -43,9 +43,9 @@ public:
 
 private:
     char     buffer[BUFFER_SIZE];
-    uint16_t buffer_head = 0;
-    uint16_t buffer_tail = 0;
-    int      m_fd;
+    uint16_t buffer_head  = 0;
+    uint16_t buffer_tail  = 0;
+    int      m_fd         = -1;
     bool     is_connected = false;
 
     pthread_t recv_thread;

@@ -63,6 +63,8 @@ void LinuxSocketClient::recv_thread_loop( void )
 
 int LinuxSocketClient::connect( IPAddress ip, uint16_t port )
 {
+    stop();
+
     int                        s_fd;
     struct c_wrap::sockaddr_in sin;
     char                       ip_str[16];
@@ -95,6 +97,8 @@ int LinuxSocketClient::connect( IPAddress ip, uint16_t port )
 
 int LinuxSocketClient::connect( const char *host, uint16_t port )
 {
+    stop();
+
     struct c_wrap::addrinfo  hints;
     struct c_wrap::addrinfo *result, *rp;
     int                      s_fd;
@@ -206,7 +210,10 @@ void LinuxSocketClient::flush( void )
 
 void LinuxSocketClient::stop( void )
 {
-    c_wrap::close( m_fd );
+    if( m_fd >= 0 )
+    {
+        c_wrap::close( m_fd );
+    }
 }
 
 uint8_t LinuxSocketClient::connected( void )
