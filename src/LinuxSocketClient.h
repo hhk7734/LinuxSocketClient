@@ -39,13 +39,15 @@ public:
     virtual uint8_t connected( void );
     virtual         operator bool( void );
 
+    void recv_thread_loop( void );
+
+private:
     char     buffer[BUFFER_SIZE];
     uint16_t buffer_head = 0;
     uint16_t buffer_tail = 0;
     int      m_fd;
     bool     is_connected = false;
 
-private:
     pthread_t recv_thread;
 };
 
